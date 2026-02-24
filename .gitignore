@@ -1,0 +1,5 @@
+.env
+.env.example
+node_modules
+bienesraices_node_mvc.sql
+bienesraices_node_mvc.dump
