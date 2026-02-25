@@ -1,6 +1,6 @@
 import express from 'express'
-import csrf from 'csurf'
 import cookieParser from 'cookie-parser'
+import { csrfSync } from 'csrf-sync'
 import usuarioRoutes from './routes/usuarioRoutes.js'
 import propiedadesRoutes from './routes/propiedadesRoutes.js'
 import appRoutes from './routes/appRoutes.js'
@@ -11,13 +11,28 @@ import db from './config/db.js'
 const app = express()
 
 // Habilitar lectura de datos de formularios
-app.use( express.urlencoded({extended: true}) )
+app.use(express.urlencoded({ extended: true }))
 
 // Habilitar Cookie Parser
-app.use( cookieParser() )
+app.use(cookieParser())
 
-// Habilitar CSRF
-app.use( csrf({cookie: true}) )
+const { generateToken, csrfSynchronisedProtection } = csrfSync({
+    getTokenFromState: (req) => req.cookies.csrfToken, // Leemos el token de la cookie
+    getTokenFromRequest: (req) => req.body._csrf,      // Leemos el token del formulario (input oculto)
+    storeTokenInState: (req, token) => {
+        // Guardamos el token en una cookie de forma segura
+        req.res.cookie('csrfToken', token, { httpOnly: true });
+    }
+});
+
+// Aplicar la proteccion CSRF en toda la app
+app.use(csrfSynchronisedProtection);
+
+// Middleware para no romper controladores que usan req.csrfToken()
+app.use((req, res, next) => {
+    req.csrfToken = () => generateToken(req);
+    next();
+});
 
 // Conexión a la base de datos
 try {
@@ -33,7 +48,7 @@ app.set('view engine', 'pug')
 app.set('views', './views')
 
 // Carpeta Pública
-app.use( express.static('public') )
+app.use(express.static('public'))
 
 // Routing
 app.use('/', appRoutes)

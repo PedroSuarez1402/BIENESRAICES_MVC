@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",                                  /* Usa las características modernas de JS */
+    "module": "NodeNext",                                /* Compatibilidad total con "type": "module" (ESM) */
+    "moduleResolution": "NodeNext",                      /* Resuelve los imports al estilo moderno de Node */
+    "outDir": "./dist",                                  /* Carpeta donde se guardará el código JavaScript compilado */
+    "rootDir": "./",                                     /* Carpeta raíz de tus archivos TypeScript */
+    "strict": true,                                      /* Activa todas las validaciones estrictas (La magia de TS) */
+    "esModuleInterop": true,                             /* Permite importar librerías viejas sin problemas */
+    "skipLibCheck": true,                                /* Ignora errores de tipos dentro de node_modules */
+    "forceConsistentCasingInFileNames": true             /* Evita errores entre Windows y Linux por mayúsculas */
+  },
+  "include": [
+    "**/*.ts"                                            /* Solo compila archivos que terminen en .ts */
+, "index.js"  ],
+  "exclude": [
+    "node_modules",
+    "public",
+    "dist"
+  ]
+}
