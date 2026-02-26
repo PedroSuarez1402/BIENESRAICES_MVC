@@ -1,23 +1,20 @@
 import { Request, Response } from 'express';
-import { Sequelize, Op } from 'sequelize';
-import { Precio, Categoria, Propiedad } from '../models/index.js';
+import { PropiedadService } from '../services/PropiedadService.js';
+import { CategoriaService } from '../services/CategoriaService.js';
+import { PrecioService } from '../services/PrecioService.js';
+
+/**
+ * Renderiza la pagina principal
+ * Orquesta las consultas simultaneas a traves de los servicios para armar la vista
+ */
 
 const inicio = async (req: Request, res: Response) => {
-    const [categorias, precios, casas, departamentos] = await Promise.all([
-        Categoria.findAll({ raw: true }),
-        Precio.findAll({ raw: true }),
-        Propiedad.findAll({
-            limit: 3,
-            where: { categoriaId: 1 },
-            include: [{ model: Precio, as: 'precio' }],
-            order: [['createdAt', 'DESC']]
-        }),
-        Propiedad.findAll({
-            limit: 3,
-            where: { categoriaId: 2 },
-            include: [{ model: Precio, as: 'precio' }],
-            order: [['createdAt', 'DESC']]
-        })
+    // Ejecutamos todas las consultas al mismo tiempo
+    const [ categorias, precios, casas, departamentos ] = await Promise.all([
+        CategoriaService.obtenerTodasRaw(),
+        PrecioService.obtenerTodosRaw(),
+        PropiedadService.obtenerUltimasPorCategoria(1, 3),
+        PropiedadService.obtenerUltimasPorCategoria(2, 3),
     ]);
 
     res.render('inicio', {
@@ -26,30 +23,31 @@ const inicio = async (req: Request, res: Response) => {
         precios,
         casas,
         departamentos,
-        csrfToken: req.csrfToken!()
+        csrfToken: req.csrfToken!(),
     });
 }
 
+/* Muestra el catalogo de propiedades filtrando por categoria */
 const categoria = async (req: Request, res: Response) => {
     const { id } = req.params;
-
-    const categoria = await Categoria.findByPk(id as string);
+    
+    const categoria = await CategoriaService.obtenerPorId(id as string);
     if (!categoria) {
         return res.redirect('/404');
     }
-
-    const propiedades = await Propiedad.findAll({
-        where: { categoriaId: id as string },
-        include: [{ model: Precio, as: 'precio' }]
-    });
-
+    
+    const propiedades = await PropiedadService.obtenerPorCategoria(id as string);
+    
     res.render('categoria', {
         pagina: `${categoria.nombre}s en Venta`,
         propiedades,
-        csrfToken: req.csrfToken!()
+        csrfToken: req.csrfToken!(),
     });
 }
 
+/**
+ * Renderiza la página de error 404 estática.
+ */
 const noEncontrado = (req: Request, res: Response) => {
     res.render('404', {
         pagina: 'No Encontrada',
@@ -57,21 +55,20 @@ const noEncontrado = (req: Request, res: Response) => {
     });
 }
 
+/**
+ * Procesa el formulario de búsqueda principal.
+ * Valida el input básico y delega la búsqueda por comodines (LIKE) al servicio.
+ */
 const buscador = async (req: Request, res: Response) => {
     const termino = req.body.termino as string;
 
+    // Validación temprana: Si el término está vacío, lo regresamos a la página anterior
     if (!termino.trim()) {
         return res.redirect('back');
     }
 
-    const propiedades = await Propiedad.findAll({
-        where: {
-            titulo: {
-                [Op.like]: '%' + termino + '%'
-            }
-        },
-        include: [{ model: Precio, as: 'precio' }]
-    });
+    // Buscamos a través de la Capa de Servicios
+    const propiedades = await PropiedadService.buscarPorTitulo(termino);
 
     res.render('busqueda', {
         pagina: 'Resultados de la Búsqueda',

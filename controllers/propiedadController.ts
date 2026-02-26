@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { unlink } from 'node:fs/promises';
 import { validationResult } from 'express-validator';
-import { Precio, Categoria, Propiedad, Mensaje, Usuario } from '../models/index.js';
-import { esVendedor, formatearFecha } from '../helpers/index.js';
+import { PropiedadService } from '../services/PropiedadService.js';
+import { CategoriaService } from '../services/CategoriaService.js';
+import { PrecioService } from '../services/PrecioService.js';
+import { formatearFecha } from '../helpers/index.js';
 
 const admin = async (req: Request, res: Response) => {
     const paginaActual = req.query.pagina as string;
@@ -13,40 +14,17 @@ const admin = async (req: Request, res: Response) => {
     }
 
     const { id } = req.usuario;
-    const limit = 10;
-    const offset = ((Number(paginaActual) * limit) - limit);
-
-    const [propiedades, total] = await Promise.all([
-        Propiedad.findAll({
-            limit,
-            offset,
-            where: { usuarioId: id },
-            include: [
-                { model: Categoria, as: 'categoria' },
-                { model: Precio, as: 'precio' },
-                { model: Mensaje, as: 'mensajes' }
-            ],
-        }),
-        Propiedad.count({ where: { usuarioId: id } })
-    ]);
+    const resultado = await PropiedadService.obtenerPropiedadesUsuario(id, Number(paginaActual));
 
     res.render('propiedades/admin', {
         pagina: 'Mis Propiedades',
-        propiedades,
-        csrfToken: req.csrfToken!(),
-        paginas: Math.ceil(total / limit),
-        paginaActual: Number(paginaActual),
-        total,
-        offset,
-        limit
+        ...resultado,
+        csrfToken: req.csrfToken!()
     });
 }
 
 const crear = async (req: Request, res: Response) => {
-    const [categorias, precios] = await Promise.all([
-        Categoria.findAll(),
-        Precio.findAll()
-    ]);
+    const [categorias, precios] = await PropiedadService.obtenerCategoriasYPrecios();
 
     res.render('propiedades/crear', {
         pagina: 'Crear Propiedad',
@@ -61,10 +39,7 @@ const guardar = async (req: Request, res: Response) => {
     let resultado = validationResult(req);
 
     if (!resultado.isEmpty()) {
-        const [categorias, precios] = await Promise.all([
-            Categoria.findAll(),
-            Precio.findAll()
-        ]);
+        const [categorias, precios] = await PropiedadService.obtenerCategoriasYPrecios();
 
         return res.render('propiedades/crear', {
             pagina: 'Crear Propiedad',
@@ -76,22 +51,17 @@ const guardar = async (req: Request, res: Response) => {
         });
     }
 
-    const { titulo, descripcion, habitaciones, estacionamiento, wc, calle, lat, lng, precio: precioId, categoria: categoriaId } = req.body;
     const { id: usuarioId } = req.usuario;
-
-    // ¡Adiós try/catch!
-    const propiedadGuardada = await Propiedad.create({
-        titulo, descripcion, habitaciones, estacionamiento, wc, calle, lat, lng, precioId, categoriaId, usuarioId, imagen: ''
-    });
+    const propiedadGuardada = await PropiedadService.crearPropiedad(req.body, usuarioId);
 
     res.redirect(`/propiedades/agregar-imagen/${propiedadGuardada.id}`);
 }
 
 const agregarImagen = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const propiedad = await Propiedad.findByPk(id as string);
+    const propiedad = await PropiedadService.verificarPropiedadParaImagen(id as string, req.usuario.id);
 
-    if (!propiedad || propiedad.publicado || req.usuario.id.toString() !== propiedad.usuarioId.toString()) {
+    if (!propiedad) {
         return res.redirect('/mis-propiedades');
     }
 
@@ -104,32 +74,29 @@ const agregarImagen = async (req: Request, res: Response) => {
 
 const almacenarImagen = async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    const propiedad = await Propiedad.findByPk(id as string);
+    const propiedad = await PropiedadService.verificarPropiedadParaImagen(id as string, req.usuario.id);
 
-    if (!propiedad || propiedad.publicado || req.usuario.id.toString() !== propiedad.usuarioId.toString()) {
+    if (!propiedad) {
         return res.redirect('/mis-propiedades');
     }
 
-    // req.file ya está tipado gracias a @types/multer
-    propiedad.imagen = req.file!.filename; 
-    propiedad.publicado = true;
-
-    await propiedad.save();
-    next();
+    try {
+        await PropiedadService.almacenarImagenPropiedad(id as string, req.file!.filename);
+        next();
+    } catch (error) {
+        return res.redirect('/mis-propiedades');
+    }
 }
 
 const editar = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const propiedad = await Propiedad.findByPk(id as string);
+    const propiedad = await PropiedadService.verificarPropiedadUsuario(id as string, req.usuario.id);
 
-    if (!propiedad || propiedad.usuarioId.toString() !== req.usuario.id.toString()) {
+    if (!propiedad) {
         return res.redirect('/mis-propiedades');
     }
 
-    const [categorias, precios] = await Promise.all([
-        Categoria.findAll(),
-        Precio.findAll()
-    ]);
+    const [categorias, precios] = await PropiedadService.obtenerCategoriasYPrecios();
 
     res.render('propiedades/editar', {
         pagina: `Editar Propiedad: ${propiedad.titulo}`,
@@ -144,10 +111,7 @@ const guardarCambios = async (req: Request, res: Response) => {
     let resultado = validationResult(req);
 
     if (!resultado.isEmpty()) {
-        const [categorias, precios] = await Promise.all([
-            Categoria.findAll(),
-            Precio.findAll()
-        ]);
+        const [categorias, precios] = await PropiedadService.obtenerCategoriasYPrecios();
 
         return res.render('propiedades/editar', {
             pagina: 'Editar Propiedad',
@@ -160,57 +124,43 @@ const guardarCambios = async (req: Request, res: Response) => {
     }
 
     const { id } = req.params;
-    const propiedad = await Propiedad.findByPk(id as string);
+    const propiedad = await PropiedadService.verificarPropiedadUsuario(id as string, req.usuario.id);
 
-    if (!propiedad || propiedad.usuarioId.toString() !== req.usuario.id.toString()) {
+    if (!propiedad) {
         return res.redirect('/mis-propiedades');
     }
 
-    const { titulo, descripcion, habitaciones, estacionamiento, wc, calle, lat, lng, precio: precioId, categoria: categoriaId } = req.body;
-
-    propiedad.set({ titulo, descripcion, habitaciones, estacionamiento, wc, calle, lat, lng, precioId, categoriaId });
-    await propiedad.save();
-
+    await PropiedadService.actualizarPropiedad(id as string, req.body);
     res.redirect('/mis-propiedades');
 }
 
 const eliminar = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const propiedad = await Propiedad.findByPk(id as string);
+    const propiedad = await PropiedadService.verificarPropiedadUsuario(id as string, req.usuario.id);
 
-    if (!propiedad || propiedad.usuarioId.toString() !== req.usuario.id.toString()) {
+    if (!propiedad) {
         return res.redirect('/mis-propiedades');
     }
 
-    await unlink(`public/uploads/${propiedad.imagen}`);
-    console.log(`Se eliminó la imagen ${propiedad.imagen}`);
-
-    await propiedad.destroy();
+    await PropiedadService.eliminarPropiedad(id as string);
     res.redirect('/mis-propiedades');
 }
 
 const cambiarEstado = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const propiedad = await Propiedad.findByPk(id as string);
+    const propiedad = await PropiedadService.verificarPropiedadUsuario(id as string, req.usuario.id);
 
-    if (!propiedad || propiedad.usuarioId.toString() !== req.usuario.id.toString()) {
+    if (!propiedad) {
         return res.redirect('/mis-propiedades');
     }
 
-    propiedad.publicado = !propiedad.publicado;
-    await propiedad.save();
-
+    await PropiedadService.cambiarEstadoPropiedad(id as string);
     res.json({ resultado: true });
 }
 
 const mostrarPropiedad = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const propiedad = await Propiedad.findByPk(id as string, {
-        include: [
-            { model: Precio, as: 'precio' },
-            { model: Categoria, as: 'categoria' },
-        ]
-    });
+    const propiedad = await PropiedadService.obtenerPropiedadPublica(id as string);
 
     if (!propiedad || !propiedad.publicado) {
         return res.redirect('/404');
@@ -221,18 +171,13 @@ const mostrarPropiedad = async (req: Request, res: Response) => {
         pagina: propiedad.titulo,
         csrfToken: req.csrfToken!(),
         usuario: req.usuario,
-        esVendedor: esVendedor(req.usuario?.id, propiedad.usuarioId)
+        esVendedor: PropiedadService.verificarVendedor(req.usuario?.id, propiedad.usuarioId)
     });
 }
 
 const enviarMensaje = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const propiedad = await Propiedad.findByPk(id as string, {
-        include: [
-            { model: Precio, as: 'precio' },
-            { model: Categoria, as: 'categoria' },
-        ]
-    });
+    const propiedad = await PropiedadService.obtenerPropiedadPublica(id as string);
 
     if (!propiedad) {
         return res.redirect('/404');
@@ -246,7 +191,7 @@ const enviarMensaje = async (req: Request, res: Response) => {
             pagina: propiedad.titulo,
             csrfToken: req.csrfToken!(),
             usuario: req.usuario,
-            esVendedor: esVendedor(req.usuario?.id, propiedad.usuarioId),
+            esVendedor: PropiedadService.verificarVendedor(req.usuario?.id, propiedad.usuarioId),
             errores: resultado.array()
         });
     }
@@ -255,28 +200,23 @@ const enviarMensaje = async (req: Request, res: Response) => {
     const { id: propiedadId } = req.params;
     const { id: usuarioId } = req.usuario;
 
-    await Mensaje.create({ mensaje, propiedadId: Number(propiedadId), usuarioId: Number(usuarioId) });
+    await PropiedadService.crearMensaje({ mensaje, propiedadId, usuarioId });
     res.redirect('/');
 }
 
 const verMensajes = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const propiedad = await Propiedad.findByPk(id as string, {
-        include: [
-            {
-                model: Mensaje, as: 'mensajes',
-                include: [{ model: Usuario.scope('eliminarPassword'), as: 'usuario' }]
-            },
-        ],
-    });
+    const propiedad = await PropiedadService.verificarPropiedadUsuario(id as string, req.usuario.id);
 
-    if (!propiedad || propiedad.usuarioId.toString() !== req.usuario.id.toString()) {
+    if (!propiedad) {
         return res.redirect('/mis-propiedades');
     }
 
+    const mensajesPropiedad = await PropiedadService.obtenerMensajesPropiedad(id as string);
+
     res.render('propiedades/mensajes', {
         pagina: 'Mensajes',
-        mensajes: propiedad.mensajes,
+        mensajes: mensajesPropiedad?.mensajes || [],
         formatearFecha
     });
 }

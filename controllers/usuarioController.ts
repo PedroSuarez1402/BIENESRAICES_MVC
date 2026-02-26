@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
-import bcrypt from 'bcrypt';
-import Usuario from '../models/Usuario.js';
-import { generarJWT, generarId } from '../helpers/tokens.js';
-import { emailRegistro, emailOlvidePassword } from '../helpers/emails.js';
+import { UsuarioService } from '../services/UsuarioService.js';
 
 const formularioLogin = (req: Request, res: Response) => {
     res.render('auth/login', {
@@ -27,35 +24,17 @@ const autenticar = async (req: Request, res: Response) => {
     }
 
     const { email, password } = req.body;
-    const usuario = await Usuario.findOne({ where: { email } });
+    const authResult = await UsuarioService.autenticar(email, password);
 
-    if (!usuario) {
+    if (!authResult.exito) {
         return res.render('auth/login', {
             pagina: 'Iniciar Sesión',
             csrfToken: req.csrfToken!(),
-            errores: [{ msg: 'El Usuario No Existe' }]
+            errores: authResult.errores
         });
     }
 
-    if (!usuario.confirmado) {
-        return res.render('auth/login', {
-            pagina: 'Iniciar Sesión',
-            csrfToken: req.csrfToken!(),
-            errores: [{ msg: 'Tu Cuenta no ha sido Confirmada' }]
-        });
-    }
-
-    if (!usuario.verificarPassword(password)) {
-        return res.render('auth/login', {
-            pagina: 'Iniciar Sesión',
-            csrfToken: req.csrfToken!(),
-            errores: [{ msg: 'El Password es Incorrecto' }]
-        });
-    }
-
-    const token = generarJWT({ id: usuario.id, nombre: usuario.nombre });
-
-    return res.cookie('_token', token, {
+    return res.cookie('_token', authResult.token!, {
         httpOnly: true,
     }).redirect('/mis-propiedades');
 }
@@ -91,8 +70,7 @@ const registrar = async (req: Request, res: Response) => {
         });
     }
 
-    const { nombre, email, password } = req.body;
-    const existeUsuario = await Usuario.findOne({ where: { email } });
+    const existeUsuario = await UsuarioService.verificarEmailExistente(req.body.email);
 
     if (existeUsuario) {
         return res.render('auth/registro', {
@@ -106,18 +84,7 @@ const registrar = async (req: Request, res: Response) => {
         });
     }
 
-    const usuario = await Usuario.create({
-        nombre,
-        email,
-        password,
-        token: generarId()
-    });
-
-    emailRegistro({
-        nombre: usuario.nombre,
-        email: usuario.email,
-        token: usuario.token!
-    });
+    await UsuarioService.crearUsuario(req.body);
 
     res.render('templates/mensaje', {
         pagina: 'Cuenta Creada Correctamente',
@@ -127,23 +94,12 @@ const registrar = async (req: Request, res: Response) => {
 
 const confirmar = async (req: Request, res: Response) => {
     const { token } = req.params;
-    const usuario = await Usuario.findOne({ where: { token } });
-
-    if (!usuario) {
-        return res.render('auth/confirmar-cuenta', {
-            pagina: 'Error al confirmar tu cuenta',
-            mensaje: 'Hubo un error al confirmar tu cuenta, intenta de nuevo',
-            error: true
-        });
-    }
-
-    usuario.token = null;
-    usuario.confirmado = true;
-    await usuario.save();
+    const resultado = await UsuarioService.confirmarCuenta(token as string);
 
     res.render('auth/confirmar-cuenta', {
-        pagina: 'Cuenta Confirmada',
-        mensaje: 'La cuenta se confirmó Correctamente'
+        pagina: resultado.error ? 'Error al confirmar tu cuenta' : 'Cuenta Confirmada',
+        mensaje: resultado.mensaje,
+        error: resultado.error
     });
 }
 
@@ -166,41 +122,31 @@ const resetPassword = async (req: Request, res: Response) => {
         });
     }
 
-    const { email } = req.body;
-    const usuario = await Usuario.findOne({ where: { email } });
+    const resetResult = await UsuarioService.iniciarRecuperacionPassword(req.body.email);
 
-    if (!usuario) {
+    if (!resetResult.exito) {
         return res.render('auth/olvide-password', {
             pagina: 'Recupera tu acceso a Bienes Raices',
             csrfToken: req.csrfToken!(),
-            errores: [{ msg: 'El Email no Pertenece a ningún usuario' }]
+            errores: resetResult.errores
         });
     }
 
-    usuario.token = generarId();
-    await usuario.save();
-
-    emailOlvidePassword({
-        email: usuario.email,
-        nombre: usuario.nombre,
-        token: usuario.token!
-    });
-
     res.render('templates/mensaje', {
         pagina: 'Reestablece tu Password',
-        mensaje: 'Hemos enviado un email con las instrucciones'
+        mensaje: resetResult.mensaje
     });
 }
 
 const comprobarToken = async (req: Request, res: Response) => {
     const { token } = req.params;
-    const usuario = await Usuario.findOne({ where: { token } });
+    const resultado = await UsuarioService.verificarTokenRecuperacion(token as string);
 
-    if (!usuario) {
+    if (!resultado.exito) {
         return res.render('auth/confirmar-cuenta', {
             pagina: 'Reestablece tu Password',
-            mensaje: 'Hubo un error al validar tu información, intenta de nuevo',
-            error: true
+            mensaje: resultado.mensaje,
+            error: resultado.error
         });
     }
 
@@ -224,18 +170,15 @@ const nuevoPassword = async (req: Request, res: Response) => {
 
     const { token } = req.params;
     const { password } = req.body;
-    const usuario = await Usuario.findOne({ where: { token } });
+    const passwordResult = await UsuarioService.establecerNuevoPassword(token as string, password);
 
-    if (!usuario) return res.redirect('/auth/login');
-
-    const salt = await bcrypt.genSalt(10);
-    usuario.password = await bcrypt.hash(password, salt);
-    usuario.token = null;
-    await usuario.save();
+    if (!passwordResult.exito && passwordResult.redirigir) {
+        return res.redirect(passwordResult.redirigir);
+    }
 
     res.render('auth/confirmar-cuenta', {
         pagina: 'Password Reestablecido',
-        mensaje: 'El Password se guardó correctamente'
+        mensaje: passwordResult.mensaje
     });
 }
 
