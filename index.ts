@@ -38,11 +38,11 @@ const { generateToken, csrfSynchronisedProtection } = csrfSync({
     getTokenFromState: (req: Request) => req.cookies.csrfToken, 
 
     getTokenFromRequest: (req: Request) => {
-        return req.body._csrf || (req.headers['csrf-token'] as string);
+        // Agregamos el signo de interrogación aquí (?)
+        return req.body?._csrf || (req.headers['csrf-token'] as string);
     },
     storeTokenInState: (req: Request, token: string | null | undefined) => {
         if (token) {
-            // Usamos req.res?.cookie para evitar errores de tipado en TS
             req.res?.cookie('csrfToken', token, { httpOnly: true });
         }
     }
