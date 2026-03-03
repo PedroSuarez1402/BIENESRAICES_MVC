@@ -1,6 +1,7 @@
 (function(){
-    const lat = 34.040967;
-    const lng = -118.1618621;
+    // Coordenadas del centro de Bucaramanga, Colombia
+    const lat = 7.1253;
+    const lng = -73.1198;
     const mapa = L.map('mapa-inicio').setView([lat, lng ], 13);
 
     let markers = new L.FeatureGroup().addTo(mapa)

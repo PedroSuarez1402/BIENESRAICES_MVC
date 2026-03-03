@@ -3,6 +3,19 @@ import { unlink } from 'node:fs/promises';
 import { Propiedad, Precio, Categoria, Mensaje, Usuario } from "../models/index.js";
 import { esVendedor } from '../helpers/index.js';
 
+interface DatosPropiedad {
+    titulo: string;
+    descripcion: string;
+    habitaciones: string | number;
+    estacionamiento: string | number;
+    wc: number;
+    calle: string;
+    lat: string;
+    lng: string;
+    precio: string | number; 
+    categoria: string | number;
+}
+
 export class PropiedadService {
     // Obtiene todas las propiedades con sus relaciones
     static async obtenerTodasConRelaciones() {
@@ -93,20 +106,20 @@ export class PropiedadService {
     /**
      * Crea una nueva propiedad
      */
-    static async crearPropiedad(datos: any, usuarioId: number) {
-        const { titulo, descripcion, habitaciones, estacionamiento, wc, calle, lat, lng, precio: precioId, categoria: categoriaId } = datos;
+    static async crearPropiedad(datos: DatosPropiedad, usuarioId: number) {
+        const { titulo, descripcion, calle, lat, lng } = datos;
         
         return await Propiedad.create({
             titulo, 
             descripcion, 
-            habitaciones, 
-            estacionamiento, 
-            wc, 
+            habitaciones: Number(datos.habitaciones), 
+            estacionamiento: Number(datos.estacionamiento), 
+            wc: Number(datos.wc), 
             calle, 
             lat, 
             lng, 
-            precioId, 
-            categoriaId, 
+            precioId: Number(datos.precio), 
+            categoriaId: Number(datos.categoria), 
             usuarioId, 
             imagen: ''
         });
@@ -163,9 +176,20 @@ export class PropiedadService {
             throw new Error('Propiedad no encontrada');
         }
 
-        const { titulo, descripcion, habitaciones, estacionamiento, wc, calle, lat, lng, precio: precioId, categoria: categoriaId } = datos;
+        const { titulo, descripcion, calle, lat, lng } = datos;
         
-        propiedad.set({ titulo, descripcion, habitaciones, estacionamiento, wc, calle, lat, lng, precioId, categoriaId });
+        propiedad.set({ 
+            titulo, 
+            descripcion, 
+            habitaciones: Number(datos.habitaciones), 
+            estacionamiento: Number(datos.estacionamiento), 
+            wc: Number(datos.wc), 
+            calle, 
+            lat, 
+            lng, 
+            precioId: Number(datos.precio), 
+            categoriaId: Number(datos.categoria) 
+        });
         await propiedad.save();
         
         return propiedad;
