@@ -36,7 +36,10 @@ app.use(cookieParser());
 // Configuración de CSRF
 const { generateToken, csrfSynchronisedProtection } = csrfSync({
     getTokenFromState: (req: Request) => req.cookies.csrfToken, 
-    getTokenFromRequest: (req: Request) => req.body._csrf,      
+
+    getTokenFromRequest: (req: Request) => {
+        return req.body._csrf || (req.headers['csrf-token'] as string);
+    },
     storeTokenInState: (req: Request, token: string | null | undefined) => {
         if (token) {
             // Usamos req.res?.cookie para evitar errores de tipado en TS

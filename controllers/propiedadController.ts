@@ -72,7 +72,7 @@ const agregarImagen = async (req: Request, res: Response) => {
     });
 }
 
-const almacenarImagen = async (req: Request, res: Response, next: NextFunction) => {
+const almacenarImagen = async (req: Request, res: Response) => {
     const { id } = req.params;
     const propiedad = await PropiedadService.verificarPropiedadParaImagen(id as string, req.usuario.id);
 
@@ -82,9 +82,12 @@ const almacenarImagen = async (req: Request, res: Response, next: NextFunction) 
 
     try {
         await PropiedadService.almacenarImagenPropiedad(id as string, req.file!.filename);
-        next();
+        
+        // ¡Magia aquí! Le respondemos a Dropzone que todo salió bien
+        res.status(200).json({ status: 'success', mensaje: 'Imagen guardada' });
+
     } catch (error) {
-        return res.redirect('/mis-propiedades');
+        res.status(500).json({ status: 'error', mensaje: 'Hubo un error al guardar la imagen' });
     }
 }
 
