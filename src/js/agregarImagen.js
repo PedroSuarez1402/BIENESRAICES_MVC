@@ -25,7 +25,7 @@ Dropzone.options.imagen = {
         })
 
         dropzone.on('queuecomplete', function() {
-            if(dropzone.getActiveFiles().length == 0) {
+            if(dropzone.getActiveFiles().length == 0 && dropzone.getRejectedFiles().length === 0) {
                 window.location.href = '/mis-propiedades'
             }
         })

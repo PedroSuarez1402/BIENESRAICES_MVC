@@ -3,3 +3,7 @@
 node_modules
 bienesraices_node_mvc.sql
 bienesraices_node_mvc.dump
+
+# Imágenes y archivos subidos
+public/img/
+public/uploads/
