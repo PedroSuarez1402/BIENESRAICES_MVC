@@ -6,14 +6,14 @@ class Mensaje extends Model<InferAttributes<Mensaje>, InferCreationAttributes<Me
     declare mensaje: string;
     
     // Llaves foráneas que se inyectarán en index.ts
-    declare propiedadId: CreationOptional<number>;
+    declare propiedadId: CreationOptional<string>;
     declare usuarioId: CreationOptional<number>;
 }
 
 Mensaje.init({
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     mensaje: { type: DataTypes.STRING(200), allowNull: false },
-    propiedadId: { type: DataTypes.INTEGER, allowNull: false },
+    propiedadId: { type: DataTypes.UUID, allowNull: false },
     usuarioId: { type: DataTypes.INTEGER, allowNull: false }
 }, { sequelize: db, tableName: 'mensajes' });
 

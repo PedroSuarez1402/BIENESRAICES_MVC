@@ -8,6 +8,7 @@ class Usuario extends Model<InferAttributes<Usuario>, InferCreationAttributes<Us
     declare email: string;
     declare password: string;
     declare token: CreationOptional<string | null>;
+    declare rolId: CreationOptional<number | null>;
     declare confirmado: CreationOptional<boolean | null>;
 
     // Método de instancia limpio gracias a las Clases ES6
@@ -22,6 +23,7 @@ Usuario.init({
     email: { type: DataTypes.STRING, allowNull: false },
     password: { type: DataTypes.STRING, allowNull: false },
     token: DataTypes.STRING,
+    rolId: DataTypes.INTEGER,
     confirmado: DataTypes.BOOLEAN
 }, {
     sequelize: db,
