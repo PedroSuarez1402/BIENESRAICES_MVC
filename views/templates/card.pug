@@ -1,32 +1,56 @@
-div(class="property-card bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group")
-    div(class="relative")
-        img(class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300" src=`/uploads/${propiedad.imagen}` alt=` imagen casa ${propiedad.titulo}`)
-        if propiedad.destacado
-            span(class="absolute top-3 left-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md") DESTACADO
+div(class="bg-white rounded-xl shadow border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col md:flex-row mb-6")
+    
+    //- Lado Izquierdo: Imagen
+    div(class="relative md:w-2/5 h-64 md:h-auto group cursor-pointer")
+        img(class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src=`/uploads/${propiedad.imagen}` alt=`imagen propiedad ${propiedad.titulo}`)
         
-        div(class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4")
-            h3(class="text-white text-xl font-bold mb-1")= propiedad.titulo
-            p(class="text-blue-100 text-sm font-semibold")= propiedad.precio.nombre
-
-    div(class="p-5 space-y-4")
-        div(class="flex items-center justify-between text-sm")
-            div(class="flex items-center gap-2")
-                svg(class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
-                    path(d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z")
-                span(class="text-gray-700 font-medium")= propiedad.habitaciones + " Habitaciones"
+        //- Etiquetas sobre la imagen
+        span(class="absolute top-3 left-3 bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-md shadow flex items-center gap-1")
+            svg(class="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20")
+                path(d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z")
+            | DESTACADO
             
-            div(class="flex items-center gap-2")
-                svg(class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
-                    path(d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z")
-                    path(fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100-4h2a1 1 0 100-2 2 2 0 00-2 2v11a2 2 0 002 2h4a2 2 0 002-2V5a2 2 0 00-2-2H6a2 2 0 00-2 2v11z" clip-rule="evenodd")
-                span(class="text-gray-700 font-medium")= propiedad.wc + " Baños"
+        button(class="absolute top-3 right-3 text-gray-100 hover:text-red-500 transition-colors drop-shadow-md")
+            svg(class="w-7 h-7" fill="currentColor" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z")
 
-        if propiedad.estacionamiento
-            div(class="flex items-center gap-2 text-sm")
-                svg(class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
-                    path(d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z")
-                    path(d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z")
-                span(class="text-gray-700 font-medium")= propiedad.estacionamiento + " Estacionamientos"
+    //- Lado Derecho: Información
+    div(class="p-6 md:w-3/5 flex flex-col justify-between")
+        div
+            div(class="flex justify-between items-start mb-2")
+                p(class="text-sm text-gray-500 font-medium") Bienes & R. (Agencia)
+                
+            //- Precio (Simulamos el precio y la administración como en la imagen)
+            h3(class="text-2xl font-bold text-gray-900 mb-1")= propiedad.precio.nombre
+            
+            //- Ubicación y Título
+            p(class="text-gray-600 text-sm mb-3")= `${propiedad.categoria.nombre} en ${propiedad.calle}`
+            h4(class="text-lg font-semibold text-gray-800 mb-2 truncate")= propiedad.titulo
+            
+            //- Iconos de características
+            div(class="flex items-center gap-4 text-gray-600 text-sm my-4")
+                span(class="flex items-center gap-1 font-medium")
+                    svg(class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6")
+                    | #{propiedad.habitaciones} Habs.
+                span(class="flex items-center gap-1 font-medium border-l border-gray-300 pl-4")
+                    svg(class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z")
+                    | #{propiedad.wc} Baños
+                if propiedad.estacionamiento
+                    span(class="flex items-center gap-1 font-medium border-l border-gray-300 pl-4")
+                        svg(class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18")
+                        | #{propiedad.estacionamiento} Estac.
 
-        div(class="pt-3 border-t border-gray-100")
-            a(href=`/propiedad/${propiedad.id}` class="block w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-center font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg") Ver Detalles 
+            //- Descripción corta
+            p(class="text-gray-600 text-sm line-clamp-2")= propiedad.descripcion
+
+        //- Botones de acción
+        div(class="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-100")
+            a(href=`/propiedad/${propiedad.id}` class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2")
+                svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                    path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z")
+                | Contactar
+            a(href=`/propiedad/${propiedad.id}` class="flex-1 text-center border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2")
+                | Ver Detalles

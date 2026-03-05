@@ -3,59 +3,59 @@ extends ./layout/app
 block styles
     link(rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css")
 
-
 block contenido
-    div(class="py-8 bg-gradient-to-br from-blue-50 to-white")
-        div(class="container mx-auto px-4")
-            h1(class="text-center text-4xl font-bold text-gray-900 mb-8") Encuentra tu Propiedad Ideal
+    //- Barra de Filtros Superior Tipo Portal
+    div(class="bg-white border-b border-gray-200 py-3 shadow-sm sticky top-0 z-10 hidden md:block")
+        div(class="container mx-auto px-4 flex items-center gap-2")
+            select(id="categorias" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-48 p-2.5")
+                option(value="") Tipo de Propiedad
+                each categoria in categorias
+                    option(value=categoria.id)= categoria.nombre
+            
+            select(id="precios" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-48 p-2.5")
+                option(value="") Rango de Precio
+                each precio in precios
+                    option(value=precio.id)= precio.nombre
+                    
+            button(class="flex items-center gap-2 bg-gray-50 border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm rounded-lg px-4 py-2.5 font-medium transition-colors")
+                svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                    path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4")
+                | Más filtros
 
-            div(class="bg-white rounded-2xl shadow-lg p-6 mb-8")
-                h2(class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2")
-                    svg(class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
-                        path(d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z")
-                    Filtrar Propiedades
+    div(class="container mx-auto px-4 py-8")
+        //- Encabezado de Resultados y Botón del Mapa
+        div(class="flex flex-col md:flex-row justify-between items-end md:items-center mb-6 pb-4 border-b border-gray-200")
+            div
+                h1(class="text-2xl font-bold text-gray-900") Inmuebles Destacados
+                p(class="text-sm text-gray-500 mt-1") Mostrando los resultados más recientes
+            
+            div(class="mt-4 md:mt-0 flex gap-3")
+                button(class="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50")
+                    svg(class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12")
+                    | Popularidad
+                button(id="btn-toggle-map" class="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50")
+                    svg(class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7")
+                    span#texto-btn-mapa Ver Mapa
 
-                div(class="flex flex-col md:flex-row md:items-center gap-4")
-                    div(class="flex-1")
-                        label(for="categorias" class="block text-sm font-medium text-gray-700 mb-2") Categorías
-                        select(id="categorias" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200")
-                            option(value="") - Todas las categorías -
-                            each categoria in categorias
-                                option(value=categoria.id )= categoria.nombre
+        //- Contenedor del Mapa (Oculto por defecto)
+        div(id="contenedor-mapa" class="hidden transition-all duration-500 mb-8")
+            div(id="mapa-inicio" class="h-[400px] w-full rounded-xl shadow-inner border border-gray-200 z-0")
 
-                    div(class="flex-1")
-                        label(for="precios" class="block text-sm font-medium text-gray-700 mb-2") Rango de Precios
-                        select(id="precios" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200")
-                            option(value="") - Todos los precios -
-                            each precio in precios
-                                option(value=precio.id )= precio.nombre
+        //- Lista de Propiedades (En 1 sola columna para que sean horizontales)
+        div(class="grid grid-cols-1 gap-6 max-w-5xl mx-auto")
+            
+            if casas.length
+                h2(class="text-xl font-bold text-gray-800 mt-4 mb-2") Casas en Venta
+                each propiedad in casas
+                    include ./templates/card
 
-        div(id="mapa-inicio" class="h-[400px] w-full rounded-2xl overflow-hidden shadow-xl mb-12")
-
-        section(class="py-12")
-            div(class="container mx-auto px-4")
-                div(class="text-center mb-10")
-                    h2(class="text-3xl font-bold text-gray-900 mb-2") Casas en Venta
-                    p(class="text-gray-600") Descubre las mejores casas disponibles
-                    div(class="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-700 mx-auto mt-4 rounded-full")
-
-                div(class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8")
-                    each propiedad in casas
-                        div(class="fade-in")
-                            include ./templates/card
-
-        section(class="py-12 bg-gray-50")
-            div(class="container mx-auto px-4")
-                div(class="text-center mb-10")
-                    h2(class="text-3xl font-bold text-gray-900 mb-2") Departamentos en Venta
-                    p(class="text-gray-600") Encuentra el apartamento perfecto para ti
-                    div(class="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-700 mx-auto mt-4 rounded-full")
-
-                div(class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8")
-                    each propiedad in departamentos
-                        div(class="fade-in")
-                            include ./templates/card
+            if departamentos.length
+                h2(class="text-xl font-bold text-gray-800 mt-8 mb-2 border-t pt-8") Departamentos en Venta
+                each propiedad in departamentos
+                    include ./templates/card
 
 block scripts
     script(src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js")
-    script(src="/js/mapaInicio.js?v=1.0.1")
+    script(src="/js/mapaInicio.js?v=1.0.2")

@@ -35,7 +35,9 @@ export class PropiedadService {
         return await Propiedad.findAll({
             limit: limite,
             where: { categoriaId },
-            include: [{ model: Precio, as: 'precio' }],
+            include: [{ model: Precio, as: 'precio' },
+                { model: Categoria, as: 'categoria' },
+            ],
             order: [['createdAt', 'DESC']]
         });
     }
@@ -45,7 +47,9 @@ export class PropiedadService {
     static async obtenerPorCategoria(categoriaId: string | number) {
         return await Propiedad.findAll({
             where: { categoriaId },
-            include: [{ model: Precio, as: 'precio' }]
+            include: [{ model: Precio, as: 'precio' },
+                { model: Categoria, as: 'categoria' },
+            ]
         });
     }
     /**
@@ -58,7 +62,9 @@ export class PropiedadService {
                     [Op.like]: '%' + termino + '%'
                 }
             },
-            include: [{ model: Precio, as: 'precio' }]
+            include: [{ model: Precio, as: 'precio' },
+                { model: Categoria, as: 'categoria' },
+            ]
         });
     }
 
@@ -254,8 +260,8 @@ export class PropiedadService {
         
         return await Mensaje.create({ 
             mensaje, 
-            propiedadId: Number(propiedadId), 
-            usuarioId: Number(usuarioId) 
+            propiedadId: propiedadId.toString(), 
+            usuarioId: usuarioId.toString() 
         });
     }
 
