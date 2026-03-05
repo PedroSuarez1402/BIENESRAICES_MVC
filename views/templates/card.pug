@@ -1,11 +1,32 @@
-div(class="bg-white shadow rounded-lg")
-    img(class="object-cover h-72 w-full" src=`/uploads/${propiedad.imagen}` alt=` imagen casa ${propiedad.titulo}`)
-    div(class="p-5 space-y-5")
-        h3(class="text-2xl font-bold")= propiedad.titulo
-        p(class="text-sm text-gray-600") Habitaciones: 
-            span(class="text-gray-800 font-bold")= propiedad.habitaciones
-        p(class="text-sm text-gray-600") WC: 
-            span(class="text-gray-800 font-bold")= propiedad.wc
-        p(class="text-sm text-gray-600") Precio:  
-            span(class="text-gray-800 font-bold")= propiedad.precio.nombre
-        a(href=`/propiedad/${propiedad.id}` class="bg-indigo-600 w-full text-center block font-bold text-white p-2 uppercase rounded") Ver Propiedad 
+div(class="property-card bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group")
+    div(class="relative")
+        img(class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300" src=`/uploads/${propiedad.imagen}` alt=` imagen casa ${propiedad.titulo}`)
+        if propiedad.destacado
+            span(class="absolute top-3 left-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md") DESTACADO
+        
+        div(class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4")
+            h3(class="text-white text-xl font-bold mb-1")= propiedad.titulo
+            p(class="text-blue-100 text-sm font-semibold")= propiedad.precio.nombre
+
+    div(class="p-5 space-y-4")
+        div(class="flex items-center justify-between text-sm")
+            div(class="flex items-center gap-2")
+                svg(class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
+                    path(d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z")
+                span(class="text-gray-700 font-medium")= propiedad.habitaciones + " Habitaciones"
+            
+            div(class="flex items-center gap-2")
+                svg(class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
+                    path(d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z")
+                    path(fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100-4h2a1 1 0 100-2 2 2 0 00-2 2v11a2 2 0 002 2h4a2 2 0 002-2V5a2 2 0 00-2-2H6a2 2 0 00-2 2v11z" clip-rule="evenodd")
+                span(class="text-gray-700 font-medium")= propiedad.wc + " Baños"
+
+        if propiedad.estacionamiento
+            div(class="flex items-center gap-2 text-sm")
+                svg(class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
+                    path(d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z")
+                    path(d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z")
+                span(class="text-gray-700 font-medium")= propiedad.estacionamiento + " Estacionamientos"
+
+        div(class="pt-3 border-t border-gray-100")
+            a(href=`/propiedad/${propiedad.id}` class="block w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-center font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg") Ver Detalles 

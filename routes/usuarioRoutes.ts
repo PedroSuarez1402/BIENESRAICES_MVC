@@ -1,5 +1,7 @@
 import express from "express";
-import { formularioLogin, autenticar, cerrarSesion, formularioRegistro, registrar, confirmar, formularioOlvidePassword, resetPassword, comprobarToken, nuevoPassword } from '../controllers/usuarioController.js';
+import { formularioLogin, autenticar, cerrarSesion, formularioRegistro, registrar, confirmar, formularioOlvidePassword, resetPassword, comprobarToken, nuevoPassword, miPerfil, administrarUsuarios } from '../controllers/usuarioController.js';
+import protegerRuta from "../middleware/protegerRuta.js";
+import verificarPermiso from "../middleware/verificarPermiso.js";
 
 const router = express.Router();
 
@@ -16,5 +18,9 @@ router.post('/olvide-password', resetPassword);
 
 router.get('/olvide-password/:token', comprobarToken);
 router.post('/olvide-password/:token', nuevoPassword);
+
+router.get('/perfil', protegerRuta, miPerfil);
+
+router.get('/administrar-usuarios', protegerRuta, verificarPermiso('administrar_usuarios'), administrarUsuarios);
 
 export default router;

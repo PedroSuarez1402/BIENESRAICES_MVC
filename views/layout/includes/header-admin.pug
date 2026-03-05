@@ -1,13 +1,21 @@
-header.bg-indigo-600.p-4
-    .container.mx-auto.flex.justify-between.items-center
-        a(href="/") 
-            h1.text-2xl.text-white.font-extrabold.text-center Bienes
-                span.font-normal Raices
+header(class="bg-gradient-to-r from-blue-700 to-blue-800 shadow-lg")
+    .container.mx-auto.px-4
+        .flex.justify-between.items-center.py-4
+            a(href="/" class="flex items-center space-x-2 group") 
+                svg(class="w-8 h-8 text-white group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20")
+                    path(d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z")
+                div
+                    h1(class="text-2xl font-bold text-white") Bienes
+                        span(class="font-normal text-blue-200") Raices
 
-        nav(class="my-5 text-sm md:flex md:items-center md:gap-3 font-bold text-white hidden ")
-            a(href="/mis-propiedades") Mis Propiedades 
-            a(href="") Mi Perfil
+            nav(class="hidden md:flex items-center space-x-6")
+                a(href="/mis-propiedades" class="text-white hover:text-blue-200 font-medium transition-colors duration-200") Mis Propiedades 
+                a(href="/auth/perfil" class="text-white hover:text-blue-200 font-medium transition-colors duration-200") Mi Perfil
 
-            form(action="/auth/cerrar-sesion" method="POST")
-                input(type="hidden" name="_csrf" value=csrfToken )
-                input( type="submit" class="bg-indigo-800 py-2 px-10 rounded-lg font-bold cursor-pointer" value="Cerrar Sesión")
+                //- si el usuario es admin se muestra el boton para administrar usuarios
+                if usuario && usuario.rolId === 1
+                    a(href="/auth/administrar-usuarios" class="bg-blue-900/50 hover:bg-blue-900 text-white border border-blue-600/50 px-4 py-2 rounded-lg font-semibold transition-all duration-200 shadow backdrop-blur-sm") Administrar Usuarios
+                
+                form(action="/auth/cerrar-sesion" method="POST" class="m-0")
+                    input(type="hidden" name="_csrf" value=csrfToken )
+                    input(type="submit" class="bg-white text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-lg font-semibold transition-all duration-200 shadow hover:shadow-md cursor-pointer" value="Cerrar Sesión")

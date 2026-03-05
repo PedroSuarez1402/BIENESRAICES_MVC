@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { check, validationResult } from 'express-validator';
 import { UsuarioService } from '../services/UsuarioService.js';
+import usuarios from '../seed/usuarios.js';
 
 const formularioLogin = (req: Request, res: Response) => {
     res.render('auth/login', {
@@ -182,4 +183,22 @@ const nuevoPassword = async (req: Request, res: Response) => {
     });
 }
 
-export { formularioLogin, autenticar, cerrarSesion, formularioRegistro, registrar, confirmar, formularioOlvidePassword, resetPassword, comprobarToken, nuevoPassword }
+const miPerfil = async (req: Request, res: Response) => {
+    res.render('auth/perfil', {
+        pagina: 'Mi Perfil',
+        csrfToken: req.csrfToken!(),
+        usuarioInfo: req.usuario
+    })
+}
+
+const administrarUsuarios = async (req: Request, res: Response) => {
+    const usuarios = await UsuarioService.obtenerTodosLosUsuarios();
+
+    res.render('auth/admin-usuarios', {
+        pagina: 'Administrar Usuarios',
+        csrfToken: req.csrfToken!(),
+        usuarios
+    })
+}
+
+export { formularioLogin, autenticar, cerrarSesion, formularioRegistro, registrar, confirmar, formularioOlvidePassword, resetPassword, comprobarToken, nuevoPassword, miPerfil, administrarUsuarios }

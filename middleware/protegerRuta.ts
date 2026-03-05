@@ -26,6 +26,7 @@ const protegerRuta = async (req: Request, res: Response, next: NextFunction) => 
         
         if (usuario) {
             req.usuario = usuario;
+            res.locals.usuario = usuario;
         } else {
             return res.redirect('/auth/login');
         }
