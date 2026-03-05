@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import Usuario from '../models/Usuario.js';
 import { generarJWT, generarId } from '../helpers/tokens.js';
 import { emailRegistro, emailOlvidePassword } from '../helpers/emails.js';
+import Rol from '../models/Rol.js';
 
 export class UsuarioService {
     /**
@@ -193,5 +194,13 @@ export class UsuarioService {
      */
     static verificarPassword(usuario: any, password: string) {
         return usuario.verificarPassword(password);
+    }
+    /**
+     * Obtener todos los usuarios con su nombre y role
+     */
+    static async obtenerTodosLosUsuarios() {
+        return await Usuario.scope('eliminarPassword').findAll({
+            include: [{ model: Rol, as: 'rol'}]
+        })
     }
 }

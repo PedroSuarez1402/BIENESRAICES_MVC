@@ -11,8 +11,8 @@
     "css": "postcss public/css/tailwind.css -o public/css/app.css --watch",
     "js": "webpack --watch",
     "dev": "concurrently \"npm run server\" \"npm run css\" \"npm run js\"",
-    "db:importar": "tsx ./seed/seeder.ts -i",
-    "db:eliminar": "tsx ./seed/seeder.ts -e"
+    "db:importar": "tsx --env-file=.env ./seed/seeder.ts -i",
+    "db:eliminar": "tsx --env-file=.env ./seed/seeder.ts -e"
   },
   "keywords": [
     "MVC",
