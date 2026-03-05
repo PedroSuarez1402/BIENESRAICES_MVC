@@ -2,7 +2,8 @@ div(class="bg-white rounded-xl shadow border border-gray-200 hover:shadow-lg tra
     
     //- Lado Izquierdo: Imagen
     div(class="relative md:w-2/5 h-64 md:h-auto group cursor-pointer")
-        img(class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src=`/uploads/${propiedad.imagen}` alt=`imagen propiedad ${propiedad.titulo}`)
+        a(href=`/propiedad/${propiedad.id}`)
+            img(class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src=`/uploads/${propiedad.imagen}` alt=`imagen propiedad ${propiedad.titulo}`)
         
         //- Etiquetas sobre la imagen
         span(class="absolute top-3 left-3 bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-md shadow flex items-center gap-1")
